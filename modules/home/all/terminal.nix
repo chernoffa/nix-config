@@ -47,7 +47,7 @@ in
     less.enable = true;
     ripgrep.enable = true;
     starship = {
-      enable = true;
+      enable = false;
       settings = {
         custom.jj = {
           command = ''
