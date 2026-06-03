@@ -8,7 +8,7 @@
   perSystem =
     { self', pkgs, ... }:
     {
-      formatter = pkgs.nixfmt-rfc-style;
+      formatter = pkgs.nixfmt;
       packages = {
         berkeley-mono = pkgs.callPackage ../../packages/berkeley-mono.nix { };
       };

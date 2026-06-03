@@ -5,7 +5,7 @@
     enable = true;
     extraPackages = [
       pkgs.nixd
-      pkgs.nixfmt-rfc-style
+      pkgs.nixfmt
     ];
     settings = {
       editor = {
