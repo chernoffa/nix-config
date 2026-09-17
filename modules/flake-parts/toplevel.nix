@@ -10,7 +10,6 @@
     {
       formatter = pkgs.nixfmt;
       packages = {
-        berkeley-mono = pkgs.callPackage ../../packages/berkeley-mono.nix { };
       };
     };
 }
