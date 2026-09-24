@@ -27,6 +27,7 @@
 
     ignores = [
       ".DS_STORE"
+      ".claude/settings.local.json"
       ".direnv"
       ".envrc"
       ".jj"

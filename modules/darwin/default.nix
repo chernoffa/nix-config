@@ -17,7 +17,11 @@ in
         self.homeModules.jj
       ];
     }
-    self.nixosModules.common
+    # Import the shared nix/caches modules by path rather than via
+    # `self.nixosModules.common`, which nixos-unified tags with
+    # `_class = "nixos"` and so cannot be imported into a darwin evaluation.
+    (self + /modules/nixos/shared/nix.nix)
+    (self + /modules/nixos/shared/caches.nix)
   ];
 
   # Disable AdLib
