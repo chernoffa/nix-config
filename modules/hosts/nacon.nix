@@ -8,6 +8,7 @@
   flake.modules.nixos.nacon = {
     imports = with config.flake.modules.nixos; [
       base
+      alex
       wsl
     ];
 

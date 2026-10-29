@@ -4,7 +4,7 @@ let
   inherit (config.me) username;
 in
 {
-  flake.modules.nixos.base =
+  flake.modules.nixos.alex =
     { pkgs, ... }:
     {
       users.users.${username} = {
