@@ -10,6 +10,7 @@
         ui.diff-formatter = [
           "difft"
           "--color=always"
+          "--width=$width"
           "$left"
           "$right"
         ];

@@ -27,7 +27,7 @@
       };
 
       ignores = [
-        ".DS_STORE"
+        ".DS_Store"
         ".claude/settings.local.json"
         ".direnv"
         ".envrc"
