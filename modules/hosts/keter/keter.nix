@@ -23,10 +23,7 @@
     time.timeZone = "America/New_York";
     i18n.defaultLocale = "en_US.UTF-8";
 
-    users.users.achernoff.extraGroups = [
-      "wheel"
-      "networkmanager"
-    ];
+    users.users.achernoff.extraGroups = [ "networkmanager" ];
 
     services.openssh.enable = true;
 

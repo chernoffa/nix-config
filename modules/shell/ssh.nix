@@ -13,6 +13,6 @@
         };
       };
 
-      services.ssh-agent = lib.mkIf pkgs.stdenv.isLinux { enable = true; };
+      services.ssh-agent.enable = lib.mkDefault pkgs.stdenv.isLinux;
     };
 }

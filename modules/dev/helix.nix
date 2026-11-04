@@ -18,6 +18,7 @@
     {
       programs.helix = {
         enable = true;
+        defaultEditor = true;
         extraPackages = [
           pkgs.nixd
           pkgs.nixfmt

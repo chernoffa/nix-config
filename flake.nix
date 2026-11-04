@@ -15,6 +15,7 @@
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
     stylix.url = "github:nix-community/stylix";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
+    stylix.inputs.flake-parts.follows = "flake-parts";
   };
 
   # Dendritic pattern: every file under ./modules is a flake-parts module.

@@ -11,8 +11,12 @@
       ];
 
       # Without a Plasma menu file, Dolphin's "Open With" list is empty.
+      # Copied out so plasma-workspace stays out of the system closure.
       environment.etc."xdg/menus/applications.menu".source =
-        "${pkgs.kdePackages.plasma-workspace}/etc/xdg/menus/plasma-applications.menu";
+        pkgs.runCommand "plasma-applications.menu" { }
+          ''
+            cp ${pkgs.kdePackages.plasma-workspace}/etc/xdg/menus/plasma-applications.menu $out
+          '';
 
       # Mounting removable drives from the file manager.
       services.udisks2.enable = true;

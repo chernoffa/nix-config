@@ -25,7 +25,7 @@
     in
     {
       # 1Password serves SSH keys instead of ssh-agent.
-      services.ssh-agent.enable = lib.mkForce false;
+      services.ssh-agent.enable = false;
       programs.ssh.settings."*".IdentityAgent = agentSocket;
       home.sessionVariables.SSH_AUTH_SOCK = agentSocket;
 
@@ -43,13 +43,8 @@
         Install.WantedBy = [ "graphical-session.target" ];
       };
 
-      wayland.windowManager.hyprland.settings.bind = [
-        {
-          _args = [
-            "SUPER + SHIFT + Space"
-            (lib.generators.mkLuaInline "hl.dsp.exec_cmd(${builtins.toJSON "${onePassword} --quick-access"})")
-          ];
-        }
+      wayland.windowManager.hyprland.settings.bind = with import ./_hyprland-lua.nix lib; [
+        (bind "SUPER + SHIFT + Space" (app "${onePassword} --quick-access"))
       ];
     };
 }

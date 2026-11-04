@@ -1,27 +1,16 @@
 {
-  flake.modules.nixos.desktop =
-    { pkgs, ... }:
-    {
-      programs.hyprland = {
-        enable = true;
-        withUWSM = true;
-      };
-
-      # Hint Electron/Chromium apps to use Wayland.
-      environment.sessionVariables.NIXOS_OZONE_WL = "1";
-
-      # File pickers and other dialogs the Hyprland portal doesn't implement.
-      xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-
-      security.rtkit.enable = true;
-      services.pipewire = {
-        enable = true;
-        alsa.enable = true;
-        pulse.enable = true;
-      };
-
-      hardware.graphics.enable = true;
+  flake.modules.nixos.desktop = {
+    programs.hyprland = {
+      enable = true;
+      withUWSM = true;
     };
+
+    # Hint Electron/Chromium apps to use Wayland.
+    environment.sessionVariables.NIXOS_OZONE_WL = "1";
+
+    # Real-time scheduling for PipeWire, which Hyprland enables.
+    security.rtkit.enable = true;
+  };
 
   flake.modules.homeManager.desktop =
     {
@@ -31,17 +20,12 @@
       ...
     }:
     let
-      lua = lib.generators.mkLuaInline;
-      bind = keys: dispatcher: opts: {
-        _args = [
-          keys
-          (lua dispatcher)
-        ]
-        ++ lib.optional (opts != { }) opts;
-      };
-      exec = cmd: "hl.dsp.exec_cmd(${builtins.toJSON cmd})";
-      # Launch apps in their own systemd scopes under UWSM.
-      app = cmd: exec "uwsm app -- ${cmd}";
+      inherit (import ./_hyprland-lua.nix lib)
+        bind
+        bindWith
+        exec
+        app
+        ;
       screenshot = mode: exec "hyprshot --mode ${mode} --raw | satty --filename -";
       dpms = action: "hyprctl dispatch 'hl.dsp.dpms({ action = \"${action}\" })'";
       directions = [
@@ -52,13 +36,12 @@
       ];
       workspaces = builtins.genList (i: toString (i + 1)) 9;
       # Media keys repeat while held and work while locked.
-      held = {
+      locked = bindWith { locked = true; };
+      held = bindWith {
         locked = true;
         repeating = true;
       };
-      locked = {
-        locked = true;
-      };
+      mouse = bindWith { mouse = true; };
     in
     {
       home.packages = [
@@ -102,44 +85,44 @@
           };
 
           bind = [
-            (bind "SUPER + Return" (app "ghostty") { })
-            (bind "SUPER + Space" (exec "fuzzel") { })
-            (bind "SUPER + E" (app "dolphin") { })
-            (bind "SUPER + SHIFT + E" (app "ghostty -e yazi") { })
-            (bind "SUPER + C" (exec "cliphist list | fuzzel --dmenu | cliphist decode | wl-copy") { })
-            (bind "SUPER + Escape" (exec "wlogout") { })
-            (bind "SUPER + ALT + L" (exec "loginctl lock-session") { })
+            (bind "SUPER + Return" (app "ghostty"))
+            (bind "SUPER + Space" (exec "fuzzel"))
+            (bind "SUPER + E" (app "dolphin"))
+            (bind "SUPER + SHIFT + E" (app "ghostty -e yazi"))
+            (bind "SUPER + C" (exec "cliphist list | fuzzel --dmenu | cliphist decode | wl-copy"))
+            (bind "SUPER + Escape" (exec "wlogout"))
+            (bind "SUPER + ALT + L" (exec "loginctl lock-session"))
 
-            (bind "Print" (screenshot "region") { })
-            (bind "SHIFT + Print" (screenshot "window") { })
-            (bind "CTRL + Print" (screenshot "output") { })
+            (bind "Print" (screenshot "region"))
+            (bind "SHIFT + Print" (screenshot "window"))
+            (bind "CTRL + Print" (screenshot "output"))
 
-            (bind "SUPER + Q" "hl.dsp.window.close()" { })
-            (bind "SUPER + F" "hl.dsp.window.fullscreen()" { })
-            (bind "SUPER + V" "hl.dsp.window.float({ action = \"toggle\" })" { })
-            (bind "SUPER + P" "hl.dsp.window.pseudo()" { })
-            (bind "SUPER + J" "hl.dsp.layout(\"togglesplit\")" { })
+            (bind "SUPER + Q" "hl.dsp.window.close()")
+            (bind "SUPER + F" "hl.dsp.window.fullscreen()")
+            (bind "SUPER + V" "hl.dsp.window.float({ action = \"toggle\" })")
+            (bind "SUPER + P" "hl.dsp.window.pseudo()")
+            (bind "SUPER + J" "hl.dsp.layout(\"togglesplit\")")
 
-            (bind "SUPER + mouse:272" "hl.dsp.window.drag()" { mouse = true; })
-            (bind "SUPER + mouse:273" "hl.dsp.window.resize()" { mouse = true; })
+            (mouse "SUPER + mouse:272" "hl.dsp.window.drag()")
+            (mouse "SUPER + mouse:273" "hl.dsp.window.resize()")
 
-            (bind "XF86AudioRaiseVolume" (exec "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+") held)
-            (bind "XF86AudioLowerVolume" (exec "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-") held)
-            (bind "XF86MonBrightnessUp" (exec "brightnessctl set 5%+") held)
-            (bind "XF86MonBrightnessDown" (exec "brightnessctl set 5%-") held)
-            (bind "XF86AudioMute" (exec "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle") locked)
-            (bind "XF86AudioMicMute" (exec "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle") locked)
-            (bind "XF86AudioPlay" (exec "playerctl play-pause") locked)
-            (bind "XF86AudioNext" (exec "playerctl next") locked)
-            (bind "XF86AudioPrev" (exec "playerctl previous") locked)
+            (held "XF86AudioRaiseVolume" (exec "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"))
+            (held "XF86AudioLowerVolume" (exec "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"))
+            (held "XF86MonBrightnessUp" (exec "brightnessctl set 5%+"))
+            (held "XF86MonBrightnessDown" (exec "brightnessctl set 5%-"))
+            (locked "XF86AudioMute" (exec "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"))
+            (locked "XF86AudioMicMute" (exec "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"))
+            (locked "XF86AudioPlay" (exec "playerctl play-pause"))
+            (locked "XF86AudioNext" (exec "playerctl next"))
+            (locked "XF86AudioPrev" (exec "playerctl previous"))
           ]
           ++ lib.concatMap (dir: [
-            (bind "SUPER + ${dir}" "hl.dsp.focus({ direction = \"${dir}\" })" { })
-            (bind "SUPER + SHIFT + ${dir}" "hl.dsp.window.move({ direction = \"${dir}\" })" { })
+            (bind "SUPER + ${dir}" "hl.dsp.focus({ direction = \"${dir}\" })")
+            (bind "SUPER + SHIFT + ${dir}" "hl.dsp.window.move({ direction = \"${dir}\" })")
           ]) directions
           ++ lib.concatMap (ws: [
-            (bind "SUPER + ${ws}" "hl.dsp.focus({ workspace = ${ws} })" { })
-            (bind "SUPER + SHIFT + ${ws}" "hl.dsp.window.move({ workspace = ${ws} })" { })
+            (bind "SUPER + ${ws}" "hl.dsp.focus({ workspace = ${ws} })")
+            (bind "SUPER + SHIFT + ${ws}" "hl.dsp.window.move({ workspace = ${ws} })")
           ]) workspaces;
         };
       };
