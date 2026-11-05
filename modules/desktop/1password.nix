@@ -3,6 +3,8 @@
     { config, lib, ... }:
     {
       programs._1password.enable = true;
+      # 1Password is the SSH agent; keep gnome-keyring's from claiming SSH_AUTH_SOCK.
+      services.gnome.gcr-ssh-agent.enable = false;
       programs._1password-gui = {
         enable = true;
         # Users allowed to unlock with system auth and connect the `op` CLI.

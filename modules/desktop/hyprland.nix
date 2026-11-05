@@ -183,7 +183,7 @@
         settings.general = {
           early-exit = true;
           copy-command = "wl-copy";
-          output-filename = "${config.home.homeDirectory}/Pictures/screenshot-%Y%m%d-%H%M%S.png";
+          output-filename = "${config.xdg.userDirs.pictures}/screenshot-%Y%m%d-%H%M%S.png";
         };
       };
 

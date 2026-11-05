@@ -13,6 +13,12 @@
         base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
         image = pkgs.nixos-artwork.wallpapers.nineish-dark-gray.gnomeFilePath;
 
+        cursor = {
+          package = pkgs.bibata-cursors;
+          name = "Bibata-Modern-Classic";
+          size = 24;
+        };
+
         fonts = {
           monospace = {
             package = pkgs.nerd-fonts.jetbrains-mono;
