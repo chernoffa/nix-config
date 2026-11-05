@@ -10,6 +10,7 @@
       base
       achernoff
       desktop
+      nvidia
       steam
       ./_hardware-configuration.nix
     ];
