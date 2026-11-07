@@ -39,8 +39,8 @@
       flake = "/home/achernoff/nix-config";
     };
 
-    home-manager.users.achernoff.home.stateVersion = "26.11";
+    home-manager.users.achernoff.home.stateVersion = "26.05";
     # Keep in sync with the value `nixos-generate-config` writes on install.
-    system.stateVersion = "26.11";
+    system.stateVersion = "26.05";
   };
 }
