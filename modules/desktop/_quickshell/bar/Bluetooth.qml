@@ -16,6 +16,10 @@ HoverTooltip {
 
     visible: !!adapter
 
+    // Open Blueman to power, pair, and connect devices.
+    acceptedButtons: Qt.LeftButton
+    onClicked: Quickshell.execDetached(["uwsm", "app", "--", "blueman-manager"])
+
     readonly property string iconState: {
         if (adapter?.state === BluetoothAdapterState.Blocked)
             return "hardware-disabled";

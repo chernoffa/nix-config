@@ -39,8 +39,13 @@
       systemd.user.services.quickshell = {
         Unit = {
           Description = "Quickshell";
-          PartOf = [ "graphical-session.target" ];
+          PartOf = [
+            "graphical-session.target"
+            "tray.target"
+          ];
           After = [ "graphical-session.target" ];
+          # Hosts the system tray, so tray apps (tray.target) start after it.
+          Before = [ "tray.target" ];
           X-Restart-Triggers = [ "${./_quickshell}" ];
         };
         Service = {
@@ -51,7 +56,10 @@
           ExecStart = lib.getExe pkgs.quickshell;
           Restart = "on-failure";
         };
-        Install.WantedBy = [ "graphical-session.target" ];
+        Install.WantedBy = [
+          "graphical-session.target"
+          "tray.target"
+        ];
       };
     };
 }
