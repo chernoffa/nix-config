@@ -34,6 +34,11 @@
     zramSwap.enable = true;
     nix.optimise.automatic = true;
 
+    programs.nh = {
+      enable = true;
+      flake = "/home/achernoff/nix-config";
+    };
+
     home-manager.users.achernoff.home.stateVersion = "26.11";
     # Keep in sync with the value `nixos-generate-config` writes on install.
     system.stateVersion = "26.11";
