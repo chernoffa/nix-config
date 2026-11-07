@@ -22,9 +22,28 @@
         pkgs.unzip
         pkgs.tre-command
       ];
+      # Syntax-highlighted man pages.
+      home.sessionVariables = {
+        MANPAGER = "sh -c 'col -bx | bat -l man -p'";
+        MANROFFOPT = "-c";
+      };
       programs = {
-        bat.enable = true;
-        btop.enable = true;
+        bat = {
+          enable = true;
+          # Picked by the terminal's background color.
+          config = {
+            theme-dark = "Catppuccin Mocha";
+            theme-light = "Catppuccin Latte";
+          };
+        };
+        btop = {
+          enable = true;
+          # Use the terminal's palette, so it follows light/dark.
+          settings = {
+            color_theme = "TTY";
+            theme_background = false;
+          };
+        };
         direnv = {
           enable = true;
           nix-direnv = {

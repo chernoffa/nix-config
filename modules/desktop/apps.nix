@@ -30,13 +30,31 @@
       programs.ghostty = {
         enable = true;
         enableZshIntegration = true;
+        settings = {
+          # Follows the system light/dark preference.
+          theme = "light:Catppuccin Latte,dark:Catppuccin Mocha";
+          font-family = "JetBrainsMono Nerd Font";
+          background-opacity = 0.9;
+          background-blur = true;
+          window-padding-x = 8;
+          window-padding-y = 8;
+          window-padding-balance = true;
+        };
       };
 
-      programs.fuzzel = {
+      programs.vicinae = {
         enable = true;
-        settings.main = {
-          terminal = "ghostty -e";
-          launch-prefix = "uwsm app --";
+        systemd.enable = true;
+        settings = {
+          theme = {
+            dark.name = "catppuccin-mocha";
+            light.name = "catppuccin-latte";
+          };
+          # Translucent so the compositor blur shows through.
+          launcher_window.opacity = 0.9;
+          # Launch apps in their own systemd scopes under UWSM, rather than
+          # inside vicinae's service, where restarting vicinae would kill them.
+          providers.applications.preferences.launchPrefix = "uwsm app --";
         };
       };
 
@@ -44,11 +62,34 @@
         enable = true;
         profiles.default = { };
       };
-      stylix.targets.firefox.profileNames = [ "default" ];
 
       programs.yazi = {
         enable = true;
         enableZshIntegration = true;
+        settings.mgr = {
+          sort_by = "natural";
+          sort_translit = true;
+          linemode = "size_and_mtime";
+          show_symlink = true;
+        };
+        flavors =
+          let
+            flavors = pkgs.fetchFromGitHub {
+              owner = "yazi-rs";
+              repo = "flavors";
+              rev = "1183892c904f7f0efdf4473e856ed308b7bea98d";
+              hash = "sha256-E1OUF1+mT0V3crVxkewG2Y7hRu8fO+0oRl6NlINmw+o=";
+            };
+          in
+          {
+            catppuccin-mocha = "${flavors}/catppuccin-mocha.yazi";
+            catppuccin-latte = "${flavors}/catppuccin-latte.yazi";
+          };
+        # Picked by the terminal's background color.
+        theme.flavor = {
+          dark = "catppuccin-mocha";
+          light = "catppuccin-latte";
+        };
       };
 
       xdg.userDirs = {
