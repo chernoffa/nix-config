@@ -28,6 +28,10 @@ HoverTooltip {
 
     visible: Networking.devices.values.length > 0
 
+    // Open NetworkManager's connection editor.
+    acceptedButtons: Qt.LeftButton
+    onClicked: Quickshell.execDetached(["uwsm", "app", "--", "nm-connection-editor"])
+
     readonly property string iconState: {
         if (!Networking.wifiHardwareEnabled)
             return "hardware-disabled";

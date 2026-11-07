@@ -9,5 +9,7 @@ Changed from the original:
 - `utils/Config.qml`: `preferredMonitor` falls back to the first screen
   when there is no `eDP-1`, for desktops with several monitors.
 - `bar/Bluetooth.qml`: clicking the icon opens Blueman.
+- `bar/Network.qml`: clicking the icon opens NetworkManager's connection
+  editor.
 
 `../quickshell.nix` links this directory to `~/.config/quickshell`.
