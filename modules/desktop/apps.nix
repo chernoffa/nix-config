@@ -33,7 +33,7 @@
         settings = {
           # Follows the system light/dark preference.
           theme = "light:Catppuccin Latte,dark:Catppuccin Mocha";
-          font-family = "JetBrainsMono Nerd Font";
+          font-family = "Berkeley Mono";
           background-opacity = 0.9;
           background-blur = true;
           window-padding-x = 8;

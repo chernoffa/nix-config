@@ -36,8 +36,25 @@
 
     programs.nh = {
       enable = true;
-      flake = "/home/achernoff/nix-config";
+      flake = "/home/achernoff/dev/nix-config";
     };
+
+    # Both monitors at their highest refresh rate (144 Hz), PG279Q on the left.
+    # Matched by description so they keep their places if the ports swap.
+    home-manager.users.achernoff.wayland.windowManager.hyprland.settings.monitor = [
+      {
+        output = "desc:Ancor Communications Inc ROG PG279Q #ASMmWUg99+jd";
+        mode = "highrr";
+        position = "0x0";
+        scale = 1;
+      }
+      {
+        output = "desc:ASUSTek COMPUTER INC VG27AQ1A LALMQS233574";
+        mode = "highrr";
+        position = "2560x0";
+        scale = 1;
+      }
+    ];
 
     home-manager.users.achernoff.home.stateVersion = "26.05";
     # Keep in sync with the value `nixos-generate-config` writes on install.

@@ -8,6 +8,7 @@
     {
       fonts = {
         packages = [
+          pkgs.berkeley-mono
           pkgs.inter
           pkgs.nerd-fonts.jetbrains-mono
           pkgs.noto-fonts-cjk-sans
@@ -15,7 +16,11 @@
         ];
         fontconfig.defaultFonts = {
           sansSerif = [ "Inter" ];
-          monospace = [ "JetBrainsMono Nerd Font" ];
+          monospace = [
+            "Berkeley Mono"
+            # Fallback for Nerd Font glyphs.
+            "JetBrainsMono Nerd Font"
+          ];
           emoji = [ "Noto Color Emoji" ];
         };
       };
@@ -56,36 +61,6 @@
         dark = pkgs.nixos-artwork.wallpapers.catppuccin-mocha.gnomeFilePath;
         light = pkgs.nixos-artwork.wallpapers.catppuccin-latte.gnomeFilePath;
       };
-      # Copied from Wayle's built-in catppuccin-mocha and catppuccin-latte.
-      waylePalette = {
-        dark = {
-          bg = "#11111b";
-          surface = "#181825";
-          elevated = "#1e1e2e";
-          fg = "#cdd6f4";
-          fg-muted = "#bac2de";
-          primary = "#b4befe";
-          red = "#f38ba8";
-          yellow = "#f9e2af";
-          green = "#a6e3a1";
-          blue = "#74c7ec";
-        };
-        light = {
-          bg = "#eff1f5";
-          surface = "#e6e9ef";
-          elevated = "#dce0e8";
-          fg = "#4c4f69";
-          fg-muted = "#5c5f77";
-          primary = "#7287fd";
-          red = "#d20f39";
-          yellow = "#df8e1d";
-          green = "#40a02b";
-          blue = "#1e66f5";
-        };
-      };
-      # TOML inline table for `wayle config set`.
-      toInlineToml =
-        attrs: "{ ${lib.concatStringsSep ", " (lib.mapAttrsToList (k: v: "${k} = \"${v}\"") attrs)} }";
       kvantumTheme = variant: {
         name = "Kvantum/catppuccin-${variant}-lavender";
         value.source = "${
@@ -147,14 +122,39 @@
       };
 
       wayland.windowManager.hyprland.extraLuaFiles.theme.content = ''
-        local borders = {
-          dark = { active_border = "rgba(88888888)", inactive_border = "rgba(00000088)" },
-          light = { active_border = "rgba(00000088)", inactive_border = "rgba(00000000)" },
+        local themes = {
+          dark = {
+            active_border = "rgba(88888888)",
+            inactive_border = "rgba(00000088)",
+            text = "rgb(000000)",
+            text_inactive = "rgba(ffffff66)",
+            group_active = "rgba(ffffff66)",
+            group_inactive = "rgba(00000066)",
+          },
+          light = {
+            active_border = "rgba(00000088)",
+            inactive_border = "rgba(00000000)",
+            text = "rgb(ffffff)",
+            text_inactive = "rgba(00000066)",
+            group_active = "rgba(00000066)",
+            group_inactive = "rgba(ffffff66)",
+          },
         }
 
         -- Called by darkman through `hyprctl eval`.
         function apply_theme(mode)
-          hl.config({ general = { col = borders[mode] or borders.dark } })
+          local t = themes[mode] or themes.dark
+          hl.config({
+            general = { col = { active_border = t.active_border, inactive_border = t.inactive_border } },
+            group = {
+              col = { border_active = t.active_border, border_inactive = t.inactive_border },
+              groupbar = {
+                text_color = t.text,
+                text_color_inactive = t.text_inactive,
+                col = { active = t.group_active, inactive = t.group_inactive },
+              },
+            },
+          })
         end
 
         -- On config reloads, keep the current mode.
@@ -207,18 +207,12 @@
           hyprland = ''
             ${hyprctl} eval "apply_theme('$1')" || true
           '';
-          wayle = byMode (
-            lib.mapAttrs (
-              _: palette:
-              "${lib.getExe config.services.wayle.package} config set styling.palette '${toInlineToml palette}'"
-            ) waylePalette
-          );
           wallpaper = ''
             if [ "$1" = light ]; then image=${wallpaper.light}; else image=${wallpaper.dark}; fi
             ln -sfn "$image" ${wallpaperLink}
-            # Wayle's wallpaper daemon may still be starting at login.
+            # hyprpaper may still be starting at login.
             for _ in $(seq 20); do
-              ${lib.getExe config.services.wayle.package} wallpaper set "$image" && break
+              ${hyprctl} hyprpaper wallpaper ", $image" && break
               sleep 0.5
             done
           '';
@@ -240,17 +234,18 @@
 
       programs.hyprlock.settings.background.path = wallpaperLink;
 
-      services.wayle.settings = {
-        general = {
-          font-sans = "Inter";
-          font-mono = "JetBrainsMono Nerd Font";
-        };
-        styling.palette = waylePalette.dark;
-        # Translucent so the compositor blur shows through.
-        bar.background-opacity = 80;
-        wallpaper = {
-          transition-type = "grow";
-          transition-duration = 1.5;
+      services.hyprpaper = {
+        enable = true;
+        settings = {
+          splash = false;
+          # Starts on the current mode's wallpaper; darkman swaps it live.
+          wallpaper = [
+            {
+              monitor = "";
+              path = wallpaperLink;
+              fit_mode = "cover";
+            }
+          ];
         };
       };
     };

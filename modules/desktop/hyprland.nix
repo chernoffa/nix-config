@@ -10,11 +10,13 @@
 
     # Real-time scheduling for PipeWire, which Hyprland enables.
     security.rtkit.enable = true;
+
+    # Screen recording; the module grants the capability it needs.
+    programs.gpu-screen-recorder.enable = true;
   };
 
   flake.modules.homeManager.desktop =
     {
-      config,
       pkgs,
       lib,
       ...
@@ -26,7 +28,18 @@
         exec
         app
         ;
-      screenshot = mode: exec "hyprshot --mode ${mode} --raw | satty --filename -";
+      # Skip launching a second copy while one is still running. Process names
+      # are cut to 15 characters and Nix wrappers prefix a dot, so match on
+      # the first 14.
+      runOnce =
+        program: args:
+        exec "pgrep ${builtins.substring 0 14 program} || uwsm app -- ${program}${
+          lib.optionalString (args != "") " ${args}"
+        }";
+      # Copy to the clipboard and save to the screenshots folder.
+      areaScreenshot = runOnce "grimblast" "--freeze --notify copysave area";
+      outputScreenshot = runOnce "grimblast" "--notify copysave output";
+      record = runOnce "gpu-screen-recorder-gtk" "";
       dpms = action: "hyprctl dispatch 'hl.dsp.dpms({ action = \"${action}\" })'";
       directions = [
         "left"
@@ -75,7 +88,9 @@
     {
       home.packages = [
         pkgs.brightnessctl
-        pkgs.hyprshot
+        pkgs.grimblast
+        pkgs.gpu-screen-recorder-gtk
+        pkgs.libnotify
         pkgs.playerctl
         pkgs.wl-clipboard
       ];
@@ -89,11 +104,22 @@
         systemd.enable = false;
 
         settings = {
-          monitor = {
-            output = "";
-            mode = "preferred";
-            position = "auto";
-            scale = "auto";
+          # Fallback for monitors without a rule of their own; hosts add those.
+          monitor = [
+            {
+              output = "";
+              mode = "preferred";
+              position = "auto";
+              scale = "auto";
+            }
+          ];
+
+          # Show the cursor in screenshots.
+          env = {
+            _args = [
+              "GRIMBLAST_NO_CURSOR"
+              "0"
+            ];
           };
 
           config = {
@@ -102,7 +128,20 @@
               gaps_out = 8;
               border_size = 1;
               resize_on_border = true;
+              # Lets the `immediate` window rule below tear for lower latency.
+              allow_tearing = true;
               layout = "dwindle";
+            };
+            # Tabbed window groups; theme.nix sets their colors.
+            group.groupbar = {
+              font_size = 12;
+              font_weight_active = "bold";
+              gradients = false;
+              height = 20;
+              indicator_height = 20;
+              rounding = 10;
+              rounding_power = 2.5;
+              text_offset = -20;
             };
             decoration = {
               rounding = 10;
@@ -138,12 +177,17 @@
               kb_layout = "us";
               follow_mouse = 1;
               focus_on_close = 1;
+              accel_profile = "flat";
               touchpad.natural_scroll = true;
             };
             misc = {
               force_default_wallpaper = 0;
               animate_mouse_windowdragging = false;
               focus_on_activate = true;
+              # Adaptive sync for fullscreen windows only.
+              vrr = 2;
+              mouse_move_enables_dpms = true;
+              key_press_enables_dpms = true;
             };
           };
 
@@ -196,12 +240,32 @@
             }
           ];
 
-          # Blur behind the bar, launcher, notifications, and logout menu.
+          # Blur behind Quickshell's surfaces, the launcher, and the logout
+          # menu, ignoring their nearly transparent pixels.
           layer_rule = [
             {
-              match.namespace = "^(wayle-bar-.*|wayle-notification-popup|wayle-osd|vicinae|logout_dialog)$";
+              match.namespace = "^(quickshell:notifications:overlay|quickshell:osd|quickshell:sidebar|quickshell:popup|vicinae|logout_dialog)$";
               blur = true;
+            }
+            {
+              match.namespace = "^(quickshell:notifications:overlay|quickshell:osd)$";
               ignore_alpha = 0.2;
+            }
+            {
+              match.namespace = "^(quickshell:sidebar|quickshell:popup|vicinae|logout_dialog)$";
+              ignore_alpha = 0.5;
+            }
+            {
+              match.namespace = "^quickshell.*$";
+              blur_popups = true;
+            }
+            {
+              match.namespace = "^(quickshell:bar)$";
+              ignore_alpha = 0.1;
+            }
+            {
+              match.namespace = "^(quickshell:notifications:overlay|quickshell:sidebar|quickshell:popup)$";
+              no_anim = true;
             }
           ];
 
@@ -227,6 +291,10 @@
               match.xwayland = true;
               rounding = 0;
             }
+            {
+              match.class = "^(osu!|cs2)$";
+              immediate = true;
+            }
           ];
 
           bind = [
@@ -238,9 +306,16 @@
             (bind "SUPER + Escape" (exec "wlogout"))
             (bind "SUPER + ALT + L" (exec "loginctl lock-session"))
 
-            (bind "Print" (screenshot "region"))
-            (bind "SHIFT + Print" (screenshot "window"))
-            (bind "CTRL + Print" (screenshot "output"))
+            (bind "Print" areaScreenshot)
+            (bind "SUPER + SHIFT + R" areaScreenshot)
+            (bind "CTRL + Print" outputScreenshot)
+            (bind "SUPER + SHIFT + CTRL + R" outputScreenshot)
+            (bind "ALT + Print" record)
+            (bind "SUPER + SHIFT + ALT + R" record)
+
+            (bind "SUPER + G" "hl.dsp.group.toggle()")
+            (bind "SUPER + SHIFT + N" "hl.dsp.group.next()")
+            (bind "SUPER + SHIFT + P" "hl.dsp.group.prev()")
 
             (bind "SUPER + Q" "hl.dsp.window.close()")
             (bind "SUPER + F" "hl.dsp.window.fullscreen()")
@@ -372,15 +447,6 @@
               on-timeout = "systemctl suspend";
             }
           ];
-        };
-      };
-
-      programs.satty = {
-        enable = true;
-        settings.general = {
-          early-exit = true;
-          copy-command = "wl-copy";
-          output-filename = "${config.xdg.userDirs.pictures}/screenshot-%Y%m%d-%H%M%S.png";
         };
       };
 
