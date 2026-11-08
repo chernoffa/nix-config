@@ -77,8 +77,8 @@
         enable = true;
         enableZshIntegration = true;
         settings = {
-          # Follows the system light/dark preference.
-          theme = "light:Catppuccin Latte,dark:Catppuccin Mocha";
+          # Written by Noctalia's template, for the current mode.
+          theme = "noctalia";
           font-family = "Berkeley Mono";
           background-opacity = 0.9;
           background-blur = true;
@@ -93,8 +93,8 @@
         systemd.enable = true;
         settings = {
           theme = {
-            dark.name = "catppuccin-mocha";
-            light.name = "catppuccin-latte";
+            dark.name = "libadwaita-dark";
+            light.name = "libadwaita-light";
           };
           # Translucent so the compositor blur shows through.
           launcher_window.opacity = 0.9;
@@ -117,24 +117,6 @@
           sort_translit = true;
           linemode = "size_and_mtime";
           show_symlink = true;
-        };
-        flavors =
-          let
-            flavors = pkgs.fetchFromGitHub {
-              owner = "yazi-rs";
-              repo = "flavors";
-              rev = "1183892c904f7f0efdf4473e856ed308b7bea98d";
-              hash = "sha256-E1OUF1+mT0V3crVxkewG2Y7hRu8fO+0oRl6NlINmw+o=";
-            };
-          in
-          {
-            catppuccin-mocha = "${flavors}/catppuccin-mocha.yazi";
-            catppuccin-latte = "${flavors}/catppuccin-latte.yazi";
-          };
-        # Picked by the terminal's background color.
-        theme.flavor = {
-          dark = "catppuccin-mocha";
-          light = "catppuccin-latte";
         };
       };
 

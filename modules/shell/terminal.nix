@@ -30,11 +30,8 @@
       programs = {
         bat = {
           enable = true;
-          # Picked by the terminal's background color.
-          config = {
-            theme-dark = "Catppuccin Mocha";
-            theme-light = "Catppuccin Latte";
-          };
+          # Use the terminal's palette, so it follows the terminal's theme.
+          config.theme = "ansi";
         };
         btop = {
           enable = true;
