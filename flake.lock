@@ -34,6 +34,29 @@
         "type": "github"
       }
     },
+    "grumble": {
+      "inputs": {
+        "home-manager": [
+          "home-manager"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794175549,
+        "narHash": "sha256-35JdwVEfu1FrdHumDYtADn/qiaHxkOTKs2vASur5kLc=",
+        "ref": "refs/heads/main",
+        "rev": "cb44bbc3da12d7dd8c8a2a3e9de4aacdfddda49c",
+        "revCount": 11,
+        "type": "git",
+        "url": "https://github.com/chernoffa/grumble"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/chernoffa/grumble"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -181,6 +204,7 @@
     "root": {
       "inputs": {
         "flake-parts": "flake-parts",
+        "grumble": "grumble",
         "home-manager": "home-manager",
         "import-tree": "import-tree",
         "nix-darwin": "nix-darwin",

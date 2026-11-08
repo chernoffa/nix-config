@@ -15,6 +15,9 @@
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
     optmem.url = "github:VictorTaelin/OptMem";
     optmem.flake = false;
+    grumble.url = "git+https://github.com/chernoffa/grumble";
+    grumble.inputs.nixpkgs.follows = "nixpkgs";
+    grumble.inputs.home-manager.follows = "home-manager";
   };
 
   # Dendritic pattern: every file under ./modules is a flake-parts module.
