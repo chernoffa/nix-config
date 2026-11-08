@@ -12,6 +12,7 @@
       desktop
       nvidia
       steam
+      windows-dual-boot
       ./_hardware-configuration.nix
     ];
 

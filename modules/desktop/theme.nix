@@ -61,15 +61,26 @@
         dark = pkgs.nixos-artwork.wallpapers.catppuccin-mocha.gnomeFilePath;
         light = pkgs.nixos-artwork.wallpapers.catppuccin-latte.gnomeFilePath;
       };
-      kvantumTheme = variant: {
-        name = "Kvantum/catppuccin-${variant}-lavender";
-        value.source = "${
-          pkgs.catppuccin-kvantum.override {
+      kvantumTheme =
+        variant:
+        let
+          name = "catppuccin-${variant}-lavender";
+          theme = pkgs.catppuccin-kvantum.override {
             inherit variant;
             accent = "lavender";
-          }
-        }/share/Kvantum/catppuccin-${variant}-lavender";
-      };
+          };
+        in
+        {
+          name = "Kvantum/${name}";
+          # Hyprland draws no title bars, so let Qt windows be dragged from
+          # any empty area, not just their menu bar and main toolbar.
+          value.source = pkgs.runCommand name { } ''
+            cp -r ${theme}/share/Kvantum/${name} $out
+            chmod -R u+w $out
+            sed -i 's/^x11drag=.*/x11drag=all/' $out/${name}.kvconfig
+            grep -q '^x11drag=all$' $out/${name}.kvconfig
+          '';
+        };
       # hyprlock reads the wallpaper through this link, which darkman repoints.
       wallpaperLink = "${config.xdg.stateHome}/wallpaper";
       # Mode scripts receive "dark" or "light" as $1.

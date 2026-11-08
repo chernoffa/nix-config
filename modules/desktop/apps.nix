@@ -2,8 +2,10 @@
   flake.modules.nixos.desktop =
     { pkgs, ... }:
     {
-      # Dolphin outside of Plasma: thumbnails, network mounts, and SVG icons.
+      # Dolphin outside of Plasma: thumbnails, network mounts, and SVG icons,
+      # plus Ark for its "Extract" and "Compress" menus.
       environment.systemPackages = [
+        pkgs.kdePackages.ark
         pkgs.kdePackages.dolphin
         pkgs.kdePackages.kio-extras
         pkgs.kdePackages.kio-fuse
@@ -32,12 +34,37 @@
       # works.
       mumble = pkgs.mumble.override { pipewireSupport = false; };
       mumbleRpc = action: exec "${lib.getExe' mumble "mumble"} rpc ${action}";
+      handle = app: types: lib.genAttrs types (_: app);
+      textTypes = [
+        "application/json"
+        "application/toml"
+        "application/x-shellscript"
+        "application/x-yaml"
+        "application/xml"
+        "text/markdown"
+        "text/plain"
+        "text/x-nix"
+        "text/x-python"
+      ];
     in
     {
       home.packages = [
         mumble
+        pkgs.loupe
         pkgs.pwvucontrol
       ];
+
+      programs.mpv.enable = true;
+
+      # Helix's own entry asks for a terminal, which xdg-open doesn't start
+      # outside of a desktop environment, so open files in Ghostty directly.
+      xdg.desktopEntries.helix-ghostty = {
+        name = "Helix";
+        exec = "ghostty -e hx %F";
+        icon = "helix";
+        noDisplay = true;
+        mimeType = textTypes;
+      };
 
       # Push-to-talk on the mouse's forward button. Wayland doesn't let
       # Mumble see input sent to other windows, so Hyprland drives it.
@@ -118,12 +145,58 @@
 
       xdg.mimeApps = {
         enable = true;
-        defaultApplications = {
-          "inode/directory" = "org.kde.dolphin.desktop";
-          "text/html" = "firefox.desktop";
-          "x-scheme-handler/http" = "firefox.desktop";
-          "x-scheme-handler/https" = "firefox.desktop";
-        };
+        defaultApplications = lib.mkMerge [
+          { "inode/directory" = "org.kde.dolphin.desktop"; }
+          (handle "firefox.desktop" [
+            "application/pdf"
+            "application/xhtml+xml"
+            "text/html"
+            "x-scheme-handler/about"
+            "x-scheme-handler/http"
+            "x-scheme-handler/https"
+          ])
+          (handle "org.gnome.Loupe.desktop" [
+            "image/avif"
+            "image/bmp"
+            "image/gif"
+            "image/heic"
+            "image/jpeg"
+            "image/jxl"
+            "image/png"
+            "image/svg+xml"
+            "image/tiff"
+            "image/webp"
+          ])
+          (handle "mpv.desktop" [
+            "audio/aac"
+            "audio/flac"
+            "audio/mp4"
+            "audio/mpeg"
+            "audio/ogg"
+            "audio/opus"
+            "audio/wav"
+            "audio/x-wav"
+            "video/mp4"
+            "video/mpeg"
+            "video/ogg"
+            "video/quicktime"
+            "video/webm"
+            "video/x-matroska"
+            "video/x-msvideo"
+          ])
+          (handle "org.kde.ark.desktop" [
+            "application/gzip"
+            "application/vnd.rar"
+            "application/x-7z-compressed"
+            "application/x-bzip2-compressed-tar"
+            "application/x-compressed-tar"
+            "application/x-tar"
+            "application/x-xz-compressed-tar"
+            "application/zip"
+            "application/zstd"
+          ])
+          (handle "helix-ghostty.desktop" textTypes)
+        ];
       };
     };
 }
