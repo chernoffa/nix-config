@@ -13,6 +13,8 @@
     import-tree.url = "github:vic/import-tree";
     nix-index-database.url = "github:nix-community/nix-index-database";
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
+    optmem.url = "github:VictorTaelin/OptMem";
+    optmem.flake = false;
   };
 
   # Dendritic pattern: every file under ./modules is a flake-parts module.

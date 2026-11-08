@@ -162,6 +162,22 @@
         "type": "github"
       }
     },
+    "optmem": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785464397,
+        "narHash": "sha256-i7HhlScSDrCrw5BFwLk2GvK0mogJEDdWzYKsnAZeuKQ=",
+        "owner": "VictorTaelin",
+        "repo": "OptMem",
+        "rev": "1fb164cf39028047781f72ac3bb1e5a691c1dcb0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "VictorTaelin",
+        "repo": "OptMem",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "flake-parts": "flake-parts",
@@ -170,7 +186,8 @@
         "nix-darwin": "nix-darwin",
         "nix-index-database": "nix-index-database",
         "nixos-wsl": "nixos-wsl",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "optmem": "optmem"
       }
     }
   },
