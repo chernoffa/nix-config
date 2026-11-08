@@ -524,5 +524,17 @@
 
       services.hyprpolkitagent.enable = true;
       services.cliphist.enable = true;
+
+      # ALT + Tab window switcher, ordered by most recent use. hyprshell
+      # registers the binding itself; its overview is left off since vicinae
+      # is the launcher.
+      services.hyprshell = {
+        enable = true;
+        settings = {
+          version = 4;
+          # Defaults to the current monitor only; show every window.
+          windows.switch.filter_by = [ ];
+        };
+      };
     };
 }
