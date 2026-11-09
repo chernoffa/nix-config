@@ -27,13 +27,11 @@
   flake.modules.homeManager.desktop =
     { pkgs, lib, ... }:
     let
-      inherit (import ./_hyprland-lua.nix lib) bind bindWith exec;
       # Mumble's PipeWire backend gets SIGKILLed within a second: one of its
       # real-time audio threads runs past the 200ms RLIMIT_RTTIME that
       # PipeWire sets. Its PulseAudio backend, served by pipewire-pulse,
       # works.
       mumble = pkgs.mumble.override { pipewireSupport = false; };
-      mumbleRpc = action: exec "${lib.getExe' mumble "mumble"} rpc ${action}";
       handle = app: types: lib.genAttrs types (_: app);
       textTypes = [
         "application/json"
@@ -65,13 +63,6 @@
         noDisplay = true;
         mimeType = textTypes;
       };
-
-      # Push-to-talk on the mouse's forward button. Wayland doesn't let
-      # Mumble see input sent to other windows, so Hyprland drives it.
-      wayland.windowManager.hyprland.settings.bind = [
-        (bind "mouse:276" (mumbleRpc "starttalking"))
-        (bindWith { release = true; } "mouse:276" (mumbleRpc "stoptalking"))
-      ];
 
       programs.ghostty = {
         enable = true;
