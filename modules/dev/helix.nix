@@ -40,7 +40,10 @@
             soft-wrap.enable = true;
             true-color = true;
           };
-          theme = "zed_onelight";
+          theme = {
+            light = "zed_onelight";
+            dark = "zed_onedark";
+          };
         };
         languages = {
           language-server.nixd = {
