@@ -11,6 +11,11 @@
     nixpkgs.hostPlatform = "aarch64-darwin";
     networking.hostName = "tzadkiel";
 
+    programs.nh = {
+      enable = true;
+      flake = "/Users/achernoff/nix-config";
+    };
+
     home-manager.users.achernoff.home.stateVersion = "24.11";
     system.configurationRevision = inputs.self.rev or inputs.self.dirtyRev or null;
     system.stateVersion = 5;
