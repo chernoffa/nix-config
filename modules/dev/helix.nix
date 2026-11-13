@@ -40,10 +40,9 @@
             soft-wrap.enable = true;
             true-color = true;
           };
-          theme = {
-            light = "zed_onelight";
-            dark = "zed_onedark";
-          };
+          # helix 25.07 only accepts a string; the { light, dark } table
+          # (follow terminal mode) lands in the next release.
+          theme = "zed_onedark";
         };
         languages = {
           language-server.nixd = {
