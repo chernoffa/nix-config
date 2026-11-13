@@ -31,6 +31,20 @@
 
     users.users.achernoff.extraGroups = [ "networkmanager" ];
 
+    # Windows C: drive. Matched by UUID since the NVMe names swap between
+    # boots. ntfs3 refuses to mount it while Windows is hibernated (Fast
+    # Startup), so nofail keeps that from blocking boot.
+    fileSystems."/mnt/windows" = {
+      device = "/dev/disk/by-uuid/EA2E71222E70E949";
+      fsType = "ntfs3";
+      options = [
+        "nofail"
+        "uid=1000"
+        "gid=100"
+        "windows_names"
+      ];
+    };
+
     hardware.bluetooth.enable = true;
     zramSwap.enable = true;
     nix.optimise.automatic = true;

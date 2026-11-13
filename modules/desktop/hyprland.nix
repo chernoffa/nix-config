@@ -40,7 +40,7 @@
       areaScreenshot = runOnce "grimblast" "--freeze --notify copysave area";
       outputScreenshot = runOnce "grimblast" "--notify copysave output";
       record = runOnce "gpu-screen-recorder-gtk" "";
-      dpms = action: "hyprctl dispatch 'hl.dsp.dpms({ action = \"${action}\" })'";
+      noctalia = command: exec "noctalia msg ${command}";
       directions = [
         "left"
         "right"
@@ -65,33 +65,12 @@
           }
         ];
       };
-      # Translucent white text that reads on both wallpapers.
-      lockLabel =
-        attrs:
-        {
-          monitor = "";
-          font_family = "Inter";
-          halign = "center";
-          valign = "center";
-          shadow_color = "rgba(50, 50, 50, 0.1)";
-          shadow_size = 20;
-          shadow_passes = 2;
-          shadow_boost = 0.3;
-        }
-        // attrs;
-      wlogoutIcon = name: ''
-        #${name} {
-          background-image: image(url("${pkgs.wlogout}/share/wlogout/icons/${name}.png"));
-        }
-      '';
     in
     {
       home.packages = [
-        pkgs.brightnessctl
         pkgs.grimblast
         pkgs.gpu-screen-recorder-gtk
         pkgs.libnotify
-        pkgs.playerctl
         pkgs.wl-clipboard
       ];
 
@@ -240,31 +219,17 @@
             }
           ];
 
-          # Blur behind Quickshell's surfaces, the launcher, and the logout
-          # menu, ignoring their nearly transparent pixels.
+          # Blur behind Noctalia's surfaces and the launcher, ignoring their
+          # nearly transparent pixels. Noctalia animates its own surfaces.
           layer_rule = [
             {
-              match.namespace = "^(quickshell:notifications:overlay|quickshell:osd|quickshell:sidebar|quickshell:popup|vicinae|logout_dialog)$";
+              match.namespace = "^(noctalia-(bar-.+|notification|dock|panel|attached-panel|osd|window-switcher)|vicinae)$";
               blur = true;
-            }
-            {
-              match.namespace = "^(quickshell:notifications:overlay|quickshell:osd)$";
-              ignore_alpha = 0.2;
-            }
-            {
-              match.namespace = "^(quickshell:sidebar|quickshell:popup|vicinae|logout_dialog)$";
+              blur_popups = true;
               ignore_alpha = 0.5;
             }
             {
-              match.namespace = "^quickshell.*$";
-              blur_popups = true;
-            }
-            {
-              match.namespace = "^(quickshell:bar)$";
-              ignore_alpha = 0.1;
-            }
-            {
-              match.namespace = "^(quickshell:notifications:overlay|quickshell:sidebar|quickshell:popup)$";
+              match.namespace = "^noctalia-(bar-.+|notification|dock|panel|attached-panel|osd|window-switcher)$";
               no_anim = true;
             }
           ];
@@ -280,8 +245,16 @@
               workspace = "special silent";
             }
             {
-              match.class = "^(gcr-prompter|xdg-desktop-portal-gtk|hyprpolkitagent)$";
+              match.class = "^(gcr-prompter|xdg-desktop-portal-gtk)$";
               dim_around = true;
+            }
+            {
+              match.class = "^(dev\\.noctalia\\.Noctalia)$";
+              float = true;
+              size = [
+                1080
+                920
+              ];
             }
             {
               match.class = "^(mpv|firefox)$";
@@ -303,8 +276,10 @@
             (bind "SUPER + E" (app "dolphin"))
             (bind "SUPER + SHIFT + E" (app "ghostty -e yazi"))
             (bind "SUPER + C" (exec "cliphist list | vicinae dmenu | cliphist decode | wl-copy"))
-            (bind "SUPER + Escape" (exec "wlogout"))
-            (bind "SUPER + ALT + L" (exec "loginctl lock-session"))
+            (bind "SUPER + S" (noctalia "panel-toggle control-center"))
+            (bind "SUPER + comma" (noctalia "settings-toggle"))
+            (bind "SUPER + Escape" (noctalia "panel-toggle session"))
+            (bind "SUPER + ALT + L" (noctalia "session lock"))
 
             (bind "Print" areaScreenshot)
             (bind "SUPER + SHIFT + R" areaScreenshot)
@@ -326,15 +301,16 @@
             (mouse "SUPER + mouse:272" "hl.dsp.window.drag()")
             (mouse "SUPER + mouse:273" "hl.dsp.window.resize()")
 
-            (held "XF86AudioRaiseVolume" (exec "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"))
-            (held "XF86AudioLowerVolume" (exec "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"))
-            (held "XF86MonBrightnessUp" (exec "brightnessctl set 5%+"))
-            (held "XF86MonBrightnessDown" (exec "brightnessctl set 5%-"))
-            (locked "XF86AudioMute" (exec "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"))
-            (locked "XF86AudioMicMute" (exec "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"))
-            (locked "XF86AudioPlay" (exec "playerctl play-pause"))
-            (locked "XF86AudioNext" (exec "playerctl next"))
-            (locked "XF86AudioPrev" (exec "playerctl previous"))
+            # Through Noctalia, so its on-screen display shows the change.
+            (held "XF86AudioRaiseVolume" (noctalia "volume-up"))
+            (held "XF86AudioLowerVolume" (noctalia "volume-down"))
+            (held "XF86MonBrightnessUp" (noctalia "brightness-up"))
+            (held "XF86MonBrightnessDown" (noctalia "brightness-down"))
+            (locked "XF86AudioMute" (noctalia "volume-mute"))
+            (locked "XF86AudioMicMute" (noctalia "mic-mute"))
+            (locked "XF86AudioPlay" (noctalia "media toggle"))
+            (locked "XF86AudioNext" (noctalia "media next"))
+            (locked "XF86AudioPrev" (noctalia "media previous"))
           ]
           ++ lib.concatMap (dir: [
             (bind "SUPER + ${dir}" "hl.dsp.focus({ direction = \"${dir}\" })")
@@ -370,159 +346,6 @@
         '';
       };
 
-      programs.hyprlock = {
-        enable = true;
-        settings = {
-          general = {
-            hide_cursor = true;
-            immediate_render = true;
-          };
-          animation = [
-            "inputFieldDots, 1, 2, linear"
-            "fade, 0"
-          ];
-          background = {
-            monitor = "";
-            blur_passes = 2;
-            blur_size = 4;
-          };
-          input-field = {
-            monitor = "";
-            size = "200, 36";
-            position = "0%, 10%";
-            halign = "center";
-            valign = "bottom";
-            outline_thickness = 1;
-            font_color = "rgb(255, 255, 255)";
-            outer_color = "rgba(255, 255, 255, 0.2)";
-            inner_color = "rgba(100, 100, 100, 0.4)";
-            check_color = "rgb(255, 200, 0)";
-            fail_color = "rgb(255, 100, 100)";
-            fade_on_empty = false;
-            placeholder_text = "Enter Password";
-            dots_spacing = 0.2;
-            dots_center = true;
-            dots_fade_time = 100;
-            shadow_color = "rgba(50, 50, 50, 0.1)";
-            shadow_size = 3;
-            shadow_passes = 2;
-          };
-          label = [
-            (lockLabel {
-              text = "<b>$TIME</b>";
-              font_size = 150;
-              color = "rgba(255, 255, 255, 0.5)";
-              position = "0%, 30%";
-            })
-            (lockLabel {
-              text = "cmd[update:60000] date +'%A, %B %-d'";
-              font_size = 20;
-              color = "rgba(255, 255, 255, 0.4)";
-              position = "0%, 40%";
-            })
-          ];
-        };
-      };
-
-      services.hypridle = {
-        enable = true;
-        settings = {
-          general = {
-            lock_cmd = "pidof hyprlock || hyprlock";
-            before_sleep_cmd = "loginctl lock-session";
-            after_sleep_cmd = dpms "on";
-          };
-          listener = [
-            {
-              timeout = 300;
-              on-timeout = "loginctl lock-session";
-            }
-            {
-              timeout = 330;
-              on-timeout = dpms "off";
-              on-resume = dpms "on";
-            }
-            {
-              timeout = 1800;
-              on-timeout = "systemctl suspend";
-            }
-          ];
-        };
-      };
-
-      programs.wlogout = {
-        enable = true;
-        layout = [
-          {
-            label = "lock";
-            action = "loginctl lock-session";
-            text = "Lock";
-            keybind = "l";
-          }
-          {
-            label = "logout";
-            action = "uwsm stop";
-            text = "Logout";
-            keybind = "e";
-          }
-          {
-            label = "suspend";
-            action = "systemctl suspend";
-            text = "Suspend";
-            keybind = "u";
-          }
-          {
-            label = "reboot";
-            action = "systemctl reboot";
-            text = "Reboot";
-            keybind = "r";
-          }
-          {
-            label = "shutdown";
-            action = "systemctl poweroff";
-            text = "Shutdown";
-            keybind = "s";
-          }
-        ];
-        style = ''
-          * {
-            background: none;
-          }
-
-          window {
-            background-color: rgba(0, 0, 0, 0.5);
-          }
-
-          button {
-            color: white;
-            font-family: Inter;
-            background-color: rgba(0, 0, 0, 0.05);
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: 25%;
-            border-radius: 12px;
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-            margin: 1rem;
-          }
-
-          button:focus,
-          button:active,
-          button:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-            outline-style: none;
-          }
-
-          ${lib.concatMapStrings wlogoutIcon [
-            "lock"
-            "logout"
-            "suspend"
-            "reboot"
-            "shutdown"
-          ]}
-        '';
-      };
-
-      services.hyprpolkitagent.enable = true;
       services.cliphist.enable = true;
 
       # ALT + Tab window switcher, ordered by most recent use. hyprshell

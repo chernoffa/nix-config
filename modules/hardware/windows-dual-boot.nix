@@ -81,11 +81,38 @@
           done < "$tmp/keys"
         '';
       };
+
+      # Windows has its own ESP on another drive, so systemd-boot can't list
+      # it. Instead, point the firmware's BootNext at Windows Boot Manager;
+      # it applies to one boot only, so NixOS stays the default afterwards.
+      reboot-windows = pkgs.writeShellApplication {
+        name = "reboot-windows";
+        runtimeInputs = [
+          pkgs.efibootmgr
+          pkgs.gnused
+        ];
+        text = ''
+          if [ "$(id -u)" -ne 0 ]; then
+            exec /run/wrappers/bin/sudo "$0" "$@"
+          fi
+
+          entry=$(efibootmgr | sed -n 's/^Boot\([0-9A-F]\{4\}\)\* Windows Boot Manager.*/\1/p' | head -n1)
+          if [ -z "$entry" ]; then
+            echo "No Windows Boot Manager entry in the firmware." >&2
+            exit 1
+          fi
+          efibootmgr --quiet --bootnext "$entry"
+          systemctl reboot
+        '';
+      };
     in
     {
       # Windows keeps the hardware clock in local time.
       time.hardwareClockInLocalTime = true;
 
-      environment.systemPackages = [ bt-sync-windows-keys ];
+      environment.systemPackages = [
+        bt-sync-windows-keys
+        reboot-windows
+      ];
     };
 }
