@@ -321,29 +321,6 @@
             (bind "SUPER + SHIFT + ${ws}" "hl.dsp.window.move({ workspace = ${ws} })")
           ]) workspaces;
         };
-
-        # No gaps, borders, or rounding when a workspace has one tiled window;
-        # SUPER + M toggles it.
-        extraLuaFiles.smartgaps.content = ''
-          local workspace_rules = {
-            hl.workspace_rule({ workspace = "w[tv1]", gaps_out = 0, gaps_in = 0 }),
-            hl.workspace_rule({ workspace = "f[1]", gaps_out = 0, gaps_in = 0 }),
-          }
-          local window_rules = {
-            hl.window_rule({ name = "smartgaps-tv1", match = { float = false, workspace = "w[tv1]" }, border_size = 0, rounding = 0 }),
-            hl.window_rule({ name = "smartgaps-f1", match = { float = false, workspace = "f[1]" }, border_size = 0, rounding = 0 }),
-          }
-
-          hl.bind("SUPER + M", function()
-            local enabled = not window_rules[1]:is_enabled()
-            for _, rule in ipairs(workspace_rules) do
-              rule:set_enabled(enabled)
-            end
-            for _, rule in ipairs(window_rules) do
-              rule:set_enabled(enabled)
-            end
-          end)
-        '';
       };
 
       services.cliphist.enable = true;
