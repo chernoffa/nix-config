@@ -1,14 +1,19 @@
+{ inputs, ... }:
+
+let
+  helixFor = pkgs: inputs.helix.packages.${pkgs.stdenv.hostPlatform.system}.default;
+in
 {
   flake.modules.nixos.base =
     { pkgs, ... }:
     {
-      environment.systemPackages = [ pkgs.helix ];
+      environment.systemPackages = [ (helixFor pkgs) ];
     };
 
   flake.modules.darwin.base =
     { pkgs, ... }:
     {
-      environment.systemPackages = [ pkgs.helix ];
+      environment.systemPackages = [ (helixFor pkgs) ];
       environment.variables.EDITOR = "hx";
     };
 
@@ -18,6 +23,7 @@
     {
       programs.helix = {
         enable = true;
+        package = helixFor pkgs;
         defaultEditor = true;
         extraPackages = [
           pkgs.nixd
@@ -40,9 +46,12 @@
             soft-wrap.enable = true;
             true-color = true;
           };
-          # helix 25.07 only accepts a string; the { light, dark } table
-          # (follow terminal mode) lands in the next release.
-          theme = "zed_onedark";
+          # Follows the terminal's light/dark mode (mode 2031); needs the
+          # unreleased helix from the flake input.
+          theme = {
+            light = "zed_onelight";
+            dark = "zed_onedark";
+          };
         };
         languages = {
           language-server.nixd = {

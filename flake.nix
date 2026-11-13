@@ -13,6 +13,9 @@
     import-tree.url = "github:vic/import-tree";
     nix-index-database.url = "github:nix-community/nix-index-database";
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
+    # Unreleased helix for [theme] light/dark (not in 25.07.1). Its own nixpkgs
+    # is kept so builds match helix.cachix.org.
+    helix.url = "github:helix-editor/helix";
     optmem.url = "github:VictorTaelin/OptMem";
     optmem.flake = false;
     grumble.url = "git+https://github.com/chernoffa/grumble";
