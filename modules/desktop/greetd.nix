@@ -8,7 +8,8 @@
     }:
     {
       services.greetd = {
-        enable = true;
+        # pond.nix turns this off for Pond's SDDM login screen.
+        enable = lib.mkDefault true;
         # Keeps boot messages from drawing over the greeter.
         useTextGreeter = true;
         settings.default_session.command = lib.concatStringsSep " " [

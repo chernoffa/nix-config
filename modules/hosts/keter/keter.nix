@@ -10,6 +10,7 @@
       base
       achernoff
       desktop
+      pond
       nvidia
       steam
       windows-dual-boot
@@ -29,7 +30,11 @@
     time.timeZone = "America/Los_Angeles";
     i18n.defaultLocale = "en_US.UTF-8";
 
-    users.users.achernoff.extraGroups = [ "networkmanager" ];
+    users.users.achernoff.extraGroups = [
+      "networkmanager"
+      # ddcutil, for Pond's monitor brightness slider.
+      "i2c"
+    ];
 
     hardware.bluetooth.enable = true;
     zramSwap.enable = true;
